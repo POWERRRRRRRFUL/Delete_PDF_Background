@@ -1,4 +1,7 @@
 import fitz
+import tkinter as tk
+from tkinter import filedialog
+import os
 
 def remove_background(input_pdf, output_pdf):
     # 打开 PDF 文件
@@ -41,7 +44,29 @@ def remove_background(input_pdf, output_pdf):
     doc.save(output_pdf)
     doc.close()
 
-# 示例使用
-input_pdf = r"input.pdf"  # 输入 PDF 文件路径
-output_pdf = r"output.pdf"  # 输出 PDF 文件路径
-remove_background(input_pdf, output_pdf)
+
+def select_file():
+    # 创建一个Tkinter窗口
+    root = tk.Tk()
+    root.withdraw()  # 隐藏主窗口
+
+    # 打开文件选择对话框
+    input_file = filedialog.askopenfilename(
+        title="选择一个 PDF 文件",
+        filetypes=[("PDF 文件", "*.pdf")]
+    )
+
+    if input_file:
+        # 自动生成输出文件名
+        base, ext = os.path.splitext(input_file)
+        output_file = f"{base}(Delete_Background){ext}"
+
+        # 调用删除背景的函数
+        remove_background(input_file, output_file)
+        print(f"文件处理完成，输出文件为: {output_file}")
+    else:
+        print("未选择文件。")
+
+# 运行文件选择功能
+if __name__ == "__main__":
+    select_file()
