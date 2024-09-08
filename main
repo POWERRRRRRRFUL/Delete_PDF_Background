@@ -1,0 +1,47 @@
+import fitz
+
+def remove_background(input_pdf, output_pdf):
+    # 打开 PDF 文件
+    doc = fitz.open(input_pdf)
+
+    # 遍历每一页
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+        # 获取页面的尺寸
+        page_width, page_height = page.rect.width, page.rect.height
+
+        # 获取页面中的所有图片
+        images = page.get_images(full=True)
+
+        # 遍历所有图像，删除接近页面尺寸的图像（可能是背景）
+        for img in images:
+            xref = img[0]
+            # 获取图像信息，包括图片在页面上的位置和尺寸
+            img_rect = page.get_image_rects(xref)
+
+            if img_rect:
+                img_rect = img_rect[0]  # 通常只有一个矩形返回，取第一个
+                img_x = img_rect.width
+                img_y = img_rect.height
+
+                # 判断图片是否为背景（尺寸接近页面尺寸，并且位于页面的边缘）
+                is_large = img_x >= 0.9 * page_width and img_y >= 0.9 * page_height
+                is_positioned_as_background = (
+                    abs(img_rect.x0) <= 10 and abs(img_rect.y0) <= 10
+                )
+
+                # 删除可能的背景图片
+                if is_large and is_positioned_as_background:
+                    print(f"Removing background image on page {page_num + 1}")
+                    page.delete_image(xref)
+                else:
+                    print(f"Keeping image on page {page_num + 1}, not a background")
+
+    # 保存处理后的 PDF
+    doc.save(output_pdf)
+    doc.close()
+
+# 示例使用
+input_pdf = r"input.pdf"  # 输入 PDF 文件路径
+output_pdf = r"output.pdf"  # 输出 PDF 文件路径
+remove_background(input_pdf, output_pdf)
